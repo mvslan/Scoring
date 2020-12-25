@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./index.scss";
 import { connect } from "react-redux";
 import { withRouter } from "react-router-dom";
 import { Button, Modal } from "antd";
+import { getData, getGroup, getAllHasRanked } from "../api/api";
+import { axiosGetData, getHasRankedList } from "../store/actions";
 
 function Home(props) {
-  const list = props.data.list;
-  const { changeRank } = props;
+  const { list, hasRankedList } = props.data;
+  const { changeRank, getAllRank, getAllHasRankedList } = props;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [item, setItem] = useState({});
+
+  useEffect(() => {
+    getAllRank();
+
+    getAllHasRankedList();
+  }, []);
 
   const showModal = (item) => {
     setIsModalVisible(true);
@@ -35,7 +43,7 @@ function Home(props) {
     });
     changeRank({
       list: _list,
-      current_rank: item.name,
+      current_rank: item,
     });
     props.history.push("/score");
   };
@@ -59,37 +67,45 @@ function Home(props) {
           <div className="rank">
             <h2>省级</h2>
             <ul>
-              {list.province_ranks.map((item) => {
-                return (
-                  <li key={item.name}>
-                    <Button
-                      disabled={item.disabled}
-                      onClick={() => showModal(item)}
-                      type="primary"
-                    >
-                      {item.name}
-                    </Button>
-                  </li>
-                );
-              })}
+              {list.province_ranks.length !== 0 &&
+                list.province_ranks.map((item) => {
+                  return (
+                    <li key={item.name}>
+                      <Button
+                        onClick={() => showModal(item)}
+                        type="primary"
+                        disabled={item.disabled}
+                      >
+                        {item.name}
+                      </Button>
+                      {hasRankedList.includes(item.id) && (
+                        <span style={{ color: "red" }}> 已打分</span>
+                      )}
+                    </li>
+                  );
+                })}
             </ul>
           </div>
           <div className="rank">
             <h2>市级</h2>
             <ul>
-              {list.city_ranks.map((item) => {
-                return (
-                  <li key={item.name}>
-                    <Button
-                      disabled={item.disabled}
-                      onClick={() => showModal(item)}
-                      type="primary"
-                    >
-                      {item.name}
-                    </Button>
-                  </li>
-                );
-              })}
+              {list.city_ranks.length !== 0 &&
+                list.city_ranks.map((item) => {
+                  return (
+                    <li key={item.name}>
+                      <Button
+                        disabled={item.disabled}
+                        onClick={() => showModal(item)}
+                        type="primary"
+                      >
+                        {item.name}
+                      </Button>
+                      {hasRankedList.includes(item.id) && (
+                        <span style={{ color: "red" }}> 已打分</span>
+                      )}
+                    </li>
+                  );
+                })}
             </ul>
           </div>
         </div>
@@ -98,11 +114,11 @@ function Home(props) {
   );
 }
 
-const mapPropsToState = (state) => ({
+const mapStateToProps = (state) => ({
   data: state.home,
 });
 
-const mapDispatchToState = (dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   changeRank(obj) {
     dispatch({
       type: "save",
@@ -111,6 +127,12 @@ const mapDispatchToState = (dispatch) => ({
       },
     });
   },
+  getAllRank() {
+    dispatch(axiosGetData());
+  },
+  getAllHasRankedList() {
+    dispatch(getHasRankedList());
+  },
 });
 
-export default withRouter(connect(mapPropsToState, mapDispatchToState)(Home));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Home));

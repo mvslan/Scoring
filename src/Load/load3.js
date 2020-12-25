@@ -1,35 +1,40 @@
-import React from "react";
-// import * as XLSX from "xlsx-style";
-import "./xlsx.style.js";
+import React, { useEffect, useState } from "react";
+import XLSX from "xlsx";
+import { getExcel, getScoreStandard } from "../api/api";
 
-const arr = [
-  "评委1",
-  "评委2",
-  "评委3",
-  "评委4",
-  "评委5",
-  "评委6",
-  "评委7",
-  "评委8",
-  "评委9",
-];
-const data = {};
-for (let index in arr) {
-  data[arr[index]] = [];
-  for (var i = 0; i < 17; i++) {
-    data[arr[index]].push({
-      local: "队伍" + i,
-      score1: 20,
-      score2: 20,
-      score3: 20,
-      score4: 20,
-      score5: 20,
-      sumScore: 100,
-    });
-  }
-}
-console.log(data);
 function Load() {
+  const [data, setData] = useState({});
+  useEffect(async () => {
+    const result = await getScoreStandard();
+    const criteria = result.data.criteria;
+
+    const data = {};
+    getExcel().then((res) => {
+      const _data = res.data;
+      const all_user_list = Object.keys(_data);
+      all_user_list.forEach((username) => {
+        data[username] = [];
+        const user_item = _data[username];
+        const user_rank_list = Object.keys(user_item);
+        user_rank_list.forEach((rank_name) => {
+          data[username].push({
+            local: rank_name,
+            score1: user_item[rank_name][criteria[0].title],
+            score2: user_item[rank_name][criteria[1].title],
+            score3: user_item[rank_name][criteria[2].title],
+            score4: user_item[rank_name][criteria[3].title],
+            sumScore:
+              Number(user_item[rank_name][criteria[0].title]) +
+              Number(user_item[rank_name][criteria[1].title]) +
+              Number(user_item[rank_name][criteria[2].title]) +
+              Number(user_item[rank_name][criteria[3].title]),
+          });
+        });
+      });
+      setData(data);
+    });
+  }, []);
+
   // 将workbook装化成blob对象
   function workbook2blob(workbook) {
     // 生成excel的配置项
@@ -103,23 +108,8 @@ function Load() {
         { wpx: 100 },
         { wpx: 100 },
         { wpx: 100 },
-        { wpx: 140 },
         { wpx: 50 },
       ];
-      //为某个单元格设置单独样式
-      ws["A1"].s = {
-        font: {
-          sz: 20,
-          bold: true,
-          color: "red",
-        },
-        alignment: {
-          horizontal: "center",
-          vertical: "center",
-          wrap_text: true,
-        },
-      };
-      console.log(ws);
       XLSX.utils.book_append_sheet(workbook, ws, table);
     });
     const workbookBlob = workbook2blob(workbook);
@@ -143,15 +133,14 @@ function Load() {
                 <tr>
                   <th rowSpan="2">序号</th>
                   <th rowSpan="2">省市名称</th>
-                  <th colSpan="5">得分</th>
+                  <th colSpan="4">得分</th>
                   <th rowSpan="2">总分</th>
                 </tr>
                 <tr>
-                  <th colSpan="1">平台网站总体情况</th>
-                  <th colSpan="1">合同履约方面情况</th>
-                  <th colSpan="1">信用承诺方面情况</th>
-                  <th colSpan="1">自然人信用建设情况</th>
-                  <th colSpan="1">平台网站创新或特色应用</th>
+                  <th colSpan="1">平台网站基础工作</th>
+                  <th colSpan="1">"信易贷"创新应用</th>
+                  <th colSpan="1">重点工作成效</th>
+                  <th colSpan="1">创新应用</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,11 +152,9 @@ function Load() {
                     <td>{item.score2}</td>
                     <td>{item.score3}</td>
                     <td>{item.score4}</td>
-                    <td>{item.score5}</td>
                     <td>{item.sumScore}</td>
                   </tr>
                 ))}
-
                 <tr>
                   <td colSpan="8">专家签名：</td>
                 </tr>

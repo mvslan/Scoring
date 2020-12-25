@@ -102,6 +102,7 @@ function Load() {
         }),
       },
     };
+    console.log(wb);
     // 写出Excel工作簿
     XLSX.writeFile(wb, filename);
   };

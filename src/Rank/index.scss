@@ -1,3 +1,15 @@
+:global {
+  .ant-select-dropdown,
+  .ant-select,
+  .ant-select-single,
+  .ant-select-show-arrow {
+    height: 2rem !important;
+  }
+  .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    height: 1rem !important;
+  }
+}
+
 .rank-content {
   font-size: 1rem;
   margin-top: 0.1rem;
